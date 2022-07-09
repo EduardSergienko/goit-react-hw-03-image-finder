@@ -1,33 +1,46 @@
 import { Component } from 'react';
 import styles from './ImageGallery.module.scss';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
-import axios from 'axios';
+import { Button } from 'components/Button/Button';
+import { fechImg } from 'services/ImageApiService';
 export class ImageGallery extends Component {
   state = {
-    data: null,
+    page: 1,
+    hits: [],
+    totalHits: null,
   };
-  componentDidUpdate = (prevProps, prevState) => {
-    if (prevProps.searchQwery !== this.props.searchQwery) {
-      axios
-        .get(
-          `https://pixabay.com/api/?key=27491202-6941cbc6cc49fba95622056d0&q=${this.props.searchQwery}&image_type=photo`
-        )
-        .then(response => {
+  componentDidUpdate = async (prevProps, prevState) => {
+    if (
+      prevProps.searchQwery !== this.props.searchQwery ||
+      prevState.page !== this.state.page
+    )
+      try {
+        const resolve = await fechImg(this.props.searchQwery, this.state.page);
+        this.setState(({ hits }) => ({
+          hits: [...hits, ...resolve.data.hits],
+          totalHits: resolve.data.totalHits,
+        }));
+        if (prevProps.searchQwery !== this.props.searchQwery) {
           this.setState({
-            data: response.data,
+            hits: [...resolve.data.hits],
+            totalHits: resolve.data.totalHits,
           });
-        });
-    }
+        }
+      } catch (error) {}
   };
-
+  handleLoadMoreBtn = () => {
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+  };
   render() {
-    // const { hits } = this.state.data;
     return (
-      <ul className={styles.ImageGallery}>
-        {this.state.data && (
-          <ImageGalleryItem imagesData={this.state.data.hits} />
-        )}
-      </ul>
+      <>
+        <ul className={styles.ImageGallery}>
+          {this.state.hits && <ImageGalleryItem imagesData={this.state.hits} />}
+        </ul>
+        <Button onLoadMoreClick={this.handleLoadMoreBtn} />
+      </>
     );
   }
 }
