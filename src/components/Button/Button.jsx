@@ -1,5 +1,5 @@
 import styles from './Button.module.scss';
-
+import PropTypes from 'prop-types';
 export function Button({ onLoadMoreClick }) {
   return (
     <button onClick={onLoadMoreClick} className={styles.Button} type="submit">
@@ -7,3 +7,6 @@ export function Button({ onLoadMoreClick }) {
     </button>
   );
 }
+Button.propTypes = {
+  onLoadMoreClick: PropTypes.func.isRequired,
+};

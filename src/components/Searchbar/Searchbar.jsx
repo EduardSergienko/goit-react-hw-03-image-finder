@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Notiflix from 'notiflix';
 import styles from './Searchbar.module.scss';
 export default class Searchbar extends Component {
   state = {
@@ -6,13 +7,17 @@ export default class Searchbar extends Component {
   };
   handleInputChange = evt => {
     this.setState({
-      searchingImg: evt.currentTarget.value,
+      searchingImg: evt.currentTarget.value.toLowerCase(),
     });
   };
 
   handleSubmit = evt => {
     evt.preventDefault();
-    this.props.onSubmit(this.state.searchingImg);
+    if (this.state.searchingImg.trim() !== '') {
+      this.props.onSubmit(this.state.searchingImg);
+    } else {
+      return Notiflix.Notify.failure(`Sory,  not found, please try again`);
+    }
   };
 
   render() {

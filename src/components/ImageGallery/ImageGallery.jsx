@@ -1,16 +1,20 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 import styles from './ImageGallery.module.scss';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Button } from 'components/Button/Button';
+import { Loader } from 'components/Loader/Loader';
+import Modal from 'components/Modal/Modal';
 import { fechImg } from 'services/ImageApiService';
-import { Rings } from 'react-loader-spinner';
 import Notiflix from 'notiflix';
 export class ImageGallery extends Component {
   state = {
     page: 1,
     hits: [],
+    totalPages: 1,
     totalHits: null,
-    loading: false,
+    largeImg: '',
+    showModal: false,
     status: 'idle',
   };
   componentDidUpdate = async (prevProps, prevState) => {
@@ -21,14 +25,16 @@ export class ImageGallery extends Component {
     )
       try {
         this.setState({
-          loading: true,
+          status: 'pending',
         });
         const resolve = await fechImg(this.props.searchQwery, page);
         console.log(resolve);
         this.setState(prevState => ({
           hits: [...prevState.hits, ...resolve.data.hits],
           totalHits: resolve.data.totalHits,
-          loading: false,
+
+          totalPages: Math.ceil(resolve.data.totalHits / 12),
+          status: 'resolved',
         }));
 
         if (prevProps.searchQwery !== this.props.searchQwery) {
@@ -37,6 +43,9 @@ export class ImageGallery extends Component {
             totalHits: resolve.data.totalHits,
           });
           if (!resolve.data.hits.length) {
+            this.setState({
+              status: 'idle',
+            });
             Notiflix.Notify.failure(
               `Sory, ${this.props.searchQwery} not found, please try again`
             );
@@ -46,35 +55,50 @@ export class ImageGallery extends Component {
         console.log(error);
       }
   };
+
   handleLoadMoreBtn = () => {
     this.setState(prevState => ({
       page: prevState.page + 1,
     }));
   };
-
+  handleGalleryItemClick = largImg => {
+    this.setState(({ showModal }) => ({
+      showModal: !showModal,
+      largeImg: largImg,
+    }));
+  };
   render() {
+    const { status, hits, page, totalPages, showModal, largeImg } = this.state;
     return (
       <>
-        {this.state.hits.length > 0 && (
+        {status === 'idle' && (
+          <h2 className={styles.InfoText}>Please, enter your request</h2>
+        )}
+
+        {hits.length > 0 && (
           <ul className={styles.ImageGallery}>
-            <ImageGalleryItem imagesData={this.state.hits} />
+            <ImageGalleryItem
+              imagesData={hits}
+              onShowModal={this.handleGalleryItemClick}
+            />
           </ul>
         )}
-
-        {/* {this.props.searchQwery === '' && <h2>Dava</h2>} */}
-        {this.state.loading === true && (
-          <div className="loader">
-            <Rings
-              height="100"
-              width="100"
-              color="#303f9f"
-              ariaLabel="loading"
-            />
-          </div>
+        {status === 'pending' && <Loader />}
+        {status === 'resolved' && totalPages !== page && (
+          <Button onLoadMoreClick={this.handleLoadMoreBtn} />
         )}
 
-        <Button onLoadMoreClick={this.handleLoadMoreBtn} />
+        {showModal && (
+          <Modal
+            largeImg={largeImg}
+            onShowModal={this.handleGalleryItemClick}
+          />
+        )}
       </>
     );
   }
 }
+
+ImageGallery.propTypes = {
+  searchQwery: PropTypes.string.isRequired,
+};
