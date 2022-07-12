@@ -9,7 +9,6 @@ import { fechImg } from 'services/ImageApiService';
 import Notiflix from 'notiflix';
 export class ImageGallery extends Component {
   state = {
-    page: 1,
     hits: [],
     totalPages: 1,
     totalHits: null,
@@ -18,21 +17,22 @@ export class ImageGallery extends Component {
     status: 'idle',
   };
   componentDidUpdate = async (prevProps, prevState) => {
-    const { page } = this.state;
     if (
       prevProps.searchQwery !== this.props.searchQwery ||
-      prevState.page !== page
+      prevProps.hageNumber !== this.props.hageNumber
     )
       try {
         this.setState({
           status: 'pending',
         });
-        const resolve = await fechImg(this.props.searchQwery, page);
+        const resolve = await fechImg(
+          this.props.searchQwery,
+          this.props.hageNumber
+        );
         console.log(resolve);
         this.setState(prevState => ({
           hits: [...prevState.hits, ...resolve.data.hits],
           totalHits: resolve.data.totalHits,
-
           totalPages: Math.ceil(resolve.data.totalHits / 12),
           status: 'resolved',
         }));
@@ -56,11 +56,6 @@ export class ImageGallery extends Component {
       }
   };
 
-  handleLoadMoreBtn = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
   handleGalleryItemClick = largImg => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
@@ -85,7 +80,7 @@ export class ImageGallery extends Component {
         )}
         {status === 'pending' && <Loader />}
         {status === 'resolved' && totalPages !== page && (
-          <Button onLoadMoreClick={this.handleLoadMoreBtn} />
+          <Button onLoadMoreClick={this.props.onSwowMore} />
         )}
 
         {showModal && (
