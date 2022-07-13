@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ImageGallery.module.scss';
-import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
+import { ImageGalleryItem } from 'components/ImageGalleryItems/ImageGalleryItems';
 import { Button } from 'components/Button/Button';
 import { Loader } from 'components/Loader/Loader';
 import Modal from 'components/Modal/Modal';
@@ -15,6 +15,7 @@ export class ImageGallery extends Component {
     largeImg: '',
     showModal: false,
     status: 'idle',
+    tags: '',
   };
   componentDidUpdate = async (prevProps, prevState) => {
     if (
@@ -56,14 +57,15 @@ export class ImageGallery extends Component {
       }
   };
 
-  handleGalleryItemClick = largImg => {
+  handleGalleryItemClick = (largImg, imgAlt) => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
       largeImg: largImg,
+      tags: imgAlt,
     }));
   };
   render() {
-    const { status, hits, page, totalPages, showModal, largeImg } = this.state;
+    const { status, hits, totalPages, showModal, largeImg, tags } = this.state;
     return (
       <>
         {status === 'idle' && (
@@ -79,12 +81,13 @@ export class ImageGallery extends Component {
           </ul>
         )}
         {status === 'pending' && <Loader />}
-        {status === 'resolved' && totalPages !== page && (
+        {status === 'resolved' && totalPages !== this.props.hageNumber && (
           <Button onLoadMoreClick={this.props.onSwowMore} />
         )}
 
         {showModal && (
           <Modal
+            imageAlt={tags}
             largeImg={largeImg}
             onShowModal={this.handleGalleryItemClick}
           />

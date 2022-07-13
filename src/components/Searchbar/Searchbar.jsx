@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Notiflix from 'notiflix';
 import styles from './Searchbar.module.scss';
+import PropTypes from 'prop-types';
 export default class Searchbar extends Component {
   state = {
     searchingImg: '',
@@ -16,7 +17,9 @@ export default class Searchbar extends Component {
     if (this.state.searchingImg.trim() !== '') {
       this.props.onSubmit(this.state.searchingImg);
     } else {
-      return Notiflix.Notify.failure(`Sory,  not found, please try again`);
+      return Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
     }
   };
 
@@ -41,3 +44,6 @@ export default class Searchbar extends Component {
     );
   }
 }
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
